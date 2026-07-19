@@ -141,7 +141,8 @@ Can you identify the three notes that make up a G major chord?
             continue
         if user_input == "help":
                 print("type exit if you want to quit")
-                print("")
+                print("ask anything relating to music theory and ill help you ")
+                print("type reset if you want to reset your history")
 
         if user_input.startswith("/search "):
             keyword = user_input[len("/search "):]
