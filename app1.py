@@ -1,3 +1,4 @@
+
 #your python code here!
 import os
 from anthropic import Anthropic
@@ -6,8 +7,10 @@ from datetime import datetime
 import random
 from pychord import Chord 
 load_dotenv()
-
+import json
 client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+
+
 
 def run_chat():
     print('welcome to our app, my name is Rick ill be teaching you music theory. Hope you enjoy and learn a lot. type exit to quit btw ')
@@ -117,13 +120,22 @@ Check Understanding:
 Can you identify the three notes that make up a G major chord?
 """
 
-
-    
-    
-
-    
-
     goal = input("what music theory do you wanna learn today?")
+    progress = {
+        "goal": goal,
+        "completed_topics": [],
+        "last_summary": ""
+}
+
+    with open("progress.json", "w") as file:
+        json.dump(progress, file, indent=4)
+        
+    
+    
+
+    
+
+   
 
 
     history = []
@@ -143,6 +155,7 @@ Can you identify the three notes that make up a G major chord?
                 print("type exit if you want to quit")
                 print("ask anything relating to music theory and ill help you ")
                 print("type reset if you want to reset your history")
+                continue
 
         if user_input.startswith("/search "):
             keyword = user_input[len("/search "):]
@@ -153,10 +166,14 @@ Can you identify the three notes that make up a G major chord?
     
         history.append({'role': 'user', 'content': user_input})
         chord_fact = get_chord_info(user_input)
+        scale_fact = get_scale_info(user_input)
+
         turn_system_message = dynamic_system_message
         if chord_fact:
             turn_system_message += f"\n\nVERIFIED CHORD FACT for this turn: {chord_fact}"
-        # print('History so far:', history)
+        if scale_fact:
+            turn_system_message += f"\n\nVERIFIED SCALE FACT for this turn: {scale_fact}"
+
         try:
             response = client.messages.create(
                 model='claude-haiku-4-5-20251001',
@@ -164,11 +181,11 @@ Can you identify the three notes that make up a G major chord?
                 temperature=0.7,
                 system=turn_system_message,
                 messages=history
-        )
+            )
         except Exception as e:
             print(f"Something went wrong talking to Claude: {e}")
-            history.pop()  
-            continue       
+            history.pop()
+            continue    
 
         reply = response.content[0].text
         print(f'Rick: {reply}')
@@ -188,10 +205,14 @@ Can you identify the three notes that make up a G major chord?
         if user_input == "/summary":
             current_time = datetime.now()
             print(random.choice(messages))
+            progress["last_summary"] = reply
+            with open("progress.json", "w") as file:
+                json.dump(progress, file, indent=4)
 
             with open("lesson_summary.txt", "a") as file:
                 file.write(f"\nLesson Date: {current_time.strftime('%Y-%m-%d %H:%M:%S')}\n")
                 file.write(reply)
+
 def search_history(history, keyword):
     found = False
     print("\nSearch Results:\n")
@@ -213,4 +234,21 @@ def get_chord_info(user_input):
             continue
     return None
 
+major_scales = {                                    
+    "C": ["C", "D", "E", "F", "G", "A", "B"],
+    "D": ["D", "E", "F#", "G", "A", "B", "C#"],
+    "G": ["G", "A", "B", "C", "D", "E", "F#"],
+    "A": ["A", "B", "C#", "D", "E", "F#", "G#"],
+}
+
+
+def get_scale_info(user_input):                     
+    words = user_input.replace(",", "").split()
+    for i in range(len(words)):
+        if words[i].lower() == "major" and i > 0:
+            root = words[i - 1]
+            if root in major_scales:
+                notes = ", ".join(major_scales[root])
+                return f"{root} major scale = {notes}"
+    return None
 run_chat()
