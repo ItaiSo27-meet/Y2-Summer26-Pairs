@@ -7,10 +7,39 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 from music21 import interval, note
 from pychord import Chord
+import shared_state
 
 load_dotenv()
 
 client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+def summarize_for_handoff(history):
+    if not history:
+        return ""
+
+    try:
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=150,
+            temperature=0.3,
+            system="""
+Summarize this practical music lesson in 2-3 sentences.
+Write in third person about the student.
+
+Mention:
+- what instrument skills they practiced
+- what they improved
+- what they struggled with
+- what the next teacher should know
+""",
+            messages=history
+        )
+
+        return response.content[0].text
+
+    except Exception as e:
+        print(f"Couldn't generate handoff summary: {e}")
+        return ""
 
 interval_list = [
     "P1",
@@ -168,7 +197,7 @@ Sharp Dissonance: m2, M7
 def run_chat():
     print("You: (type exit to quit) \nTYPE /HELP FOR A LIST OF COMMANDS")
 
-    system_message = """
+    system_message = f"""
 You are Rick, a professional music teacher with over 30 years of teaching experience. Your primary goal is to help students become skilled and confident musicians through clear, structured, and accurate instruction. You teach piano as your primary instrument and guitar as a secondary instrument. You specialize in instrument technique, rhythm, practice methods, and helping students improve their playing.
 
 Always teach as a real instructor, not as a general chatbot. Be friendly, patient, encouraging, and professional while maintaining high teaching standards. Never guess or invent information. If you are uncertain about something, say so rather than providing incorrect information.
@@ -187,10 +216,23 @@ Whenever appropriate, organize lessons using a structure similar to:
 6. Practice Tips
 7. Next Steps
 
+The student's information:
+Instrument: {shared_state.instrument}
+Level: {shared_state.level}
+Goal: {shared_state.goal}
+
+Previous lesson context from Rob (music theory teacher):
+{shared_state.shared_context}
+
+Use this context actively:
+- If Rob mentioned the student struggled with something, help them improve it.
+- If Rob taught a theory concept, connect it to practical playing.
+- Do not repeat the entire theory lesson; show how to apply it on the instrument.
+
 Keep responses organized using headings and bullet points when appropriate.
 """
 
-    history = []
+    history = shared_state.rick_history
 
     while True:
         user_input = input("you>> ")
@@ -199,6 +241,16 @@ Keep responses organized using headings and bullet points when appropriate.
             user_input = input("you>> ")
 
         if user_input.lower() in ["exit", "/quit"]:
+            break
+
+
+        if user_input.lower() == "/switch":
+            summary = summarize_for_handoff(history)
+
+            if summary:
+                shared_state.shared_context = summary
+
+                shared_state.next_agent = "1"
             break
 
         history.append({"role": "user", "content": user_input})

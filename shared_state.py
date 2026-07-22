@@ -7,3 +7,4 @@ rob_history = []
 rick_history = []
 
 shared_context = ""
+next_agent = None

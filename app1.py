@@ -390,3 +390,5 @@ def get_scale_info(user_input):
                 notes = ", ".join(major_scales[root])
                 return f"{root} major scale = {notes}"
     return None
+
+
