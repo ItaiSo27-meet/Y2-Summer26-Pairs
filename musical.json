@@ -1,0 +1,63 @@
+[
+    {
+        "username": {}
+    },
+    {
+        "username": {
+            "itai": {
+                "instrument": "guitar",
+                "goal": "I want to memorize the fretboard more effectivelly",
+                "level": "beginner",
+                "shared_context": {
+                    "last_lesson": "Fretboard notes"
+                }
+            }
+        }
+    },
+    {
+        "username": {
+            "itai": {
+                "Summary": "# Strengthening Your Pinky Finger\n\nGood observation! A weak pinky is one of the most common challenges guitarists face. The good news is that with targeted exercises, it improves quickly.\n\n## Why Your Pinky Is Weak\n\n- Your pinky has its own tendon that's less developed than your other fingers\n- It's naturally shorter and less independent\n- Most beginners neglect it during early practice\n- It requires specific, isolated training to build strength and independence\n\n## Before We Start\n\nTo give you the best exercises, I need to know:\n\n1. **How long have you been playing guitar?**\n2. **What style of music do you play?** (rock, classical, folk, etc.)\n3. **What specific problems do you have with your pinky?**\n   - Can't press down hard enough?\n   - Can't reach certain frets?\n   - Finger gets tired quickly?\n   - Lacks coordination or accuracy?\n   - Struggles to play it independently from other fingers?\n\n4. **Are you also still working on fretboard memorization**, or should we focus on pinky strength first?\n\n---\n\n## Quick Note\n\nThese are actually **related goals**. A stronger pinky will help you navigate the fretboard more efficiently, and practicing fretboard exercises will naturally strengthen your pinky. Once I know more about your situation"
+            }
+        }
+    },
+    {
+        "username": {
+            "itai": {
+                "Summary": "# Pinky Strength & Independence - Let's Fix This\n\nGood observation! Weak pinkies are one of the most common issues I see, and the good news is **this is very fixable with targeted practice.**\n\nBefore we build your pinky strength, I need to understand your situation better:\n\n## Quick Questions:\n\n1. **What's your overall guitar experience level?** (beginner, 6 months, 1+ year, etc.)\n2. **Where does the weakness show up most?** \n   - Fretting notes clearly (muted or buzzing)?\n   - Reaching to certain frets?\n   - Holding down strings for extended periods?\n   - Finger independence (pinky moving while other fingers stay still)?\n3. **Do you experience any pain or just weakness?**\n\n---\n\n## Why Pinkies Are Weak\n\nYour pinky is naturally the weakest finger because:\n- It has a shared tendon with your ring finger (they're connected)\n- It gets less use in everyday life\n- Most beginners neglect it in early practice\n\n**The solution is isolation exercises that force your pinky to work independently.**\n\n---\n\nOnce you answer those questions, I'll give you a **specific daily routine** with exercises tailored to your level. This typically takes 2-4 weeks of consistent practice to see real improvement."
+            }
+        }
+    },
+    {
+        "username": {
+            "itai": {
+                "Summary": "# Fretboard Memorization Strategy\n\nGreat goal! A solid fretboard knowledge will speed up your playing and make learning songs much easier. Let me help you build an effective system.\n\n## First, let me understand where you're starting:\n\n1. **What's your current guitar experience level?** (beginner, intermediate, advanced)\n2. **Do you already know the open strings?** (E-A-D-G-B-E)\n3. **Are you familiar with the chromatic scale** (all 12 notes)?\n4. **What's your main goal?** (faster learning, improvisation, composition, general fluency?)\n\n## Why Fretboard Knowledge Matters\n\nBefore we dive in, here's why this matters:\n- **Faster learning** \u2013 You'll learn songs and scales without constantly checking diagrams\n- **Better improvisation** \u2013 You'll know where notes are without thinking\n- **Confidence** \u2013 You'll understand the instrument, not just memorize finger positions\n- **Transferable skills** \u2013 It helps with music theory and playing other instruments\n\n---\n\n## Quick Preview of Our Approach\n\nOnce I know your level, I'll give you a customized system using:\n- **Landmark notes** (reference points to navigate from)\n- **Pattern recognition** (not random memorization)\n- **Practical exercises** (learning through"
+            }
+        }
+    },
+    {
+        "username": {
+            "itai": {
+                "Summary": "Hey there! Good to hear from you. \n\nI'm Rick, and I'm here to help you with your guitar fretboard memorization. We were just getting started on that!\n\nTo give you the best guidance, I need to know a bit more about where you're at:\n\n1. **How long have you been playing guitar?**\n2. **Can you identify any notes on the fretboard right now?** (Even just the open strings?)\n3. **Do you read musical notation, or are you more of a tab/ear player?**\n\nOnce I understand your starting point, I'll create a focused practice plan that actually works\u2014no wasted time, just smart, efficient learning.\n\nWhat's your current experience level?"
+            }
+        }
+    },
+    {
+        "username": {
+            "aleen": {
+                "instrument": "piano",
+                "goal": "to learn minor chords",
+                "level": "beginner"
+            }
+        }
+    },
+    {
+        "username": {
+            "aleen.awwad": {
+                "instrument": "piano",
+                "goal": "to learn about chords",
+                "level": "intermediate"
+            }
+        }
+    }
+]

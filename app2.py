@@ -1,105 +1,181 @@
-from operator import add
+from datetime import datetime
+import math
 import os
+import random
+
 from anthropic import Anthropic
 from dotenv import load_dotenv
-
-
-import json
-
-with open("musical.json", "r") as file:
-    data = json.load(file)
+from music21 import interval, note
+from pychord import Chord
 
 load_dotenv()
-user_input = "hi"
-client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+
+client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+interval_list = [
+    "P1",
+    "m2",
+    "M2",
+    "m3",
+    "M3",
+    "P4",
+    "A4",
+    "d5",
+    "P5",
+    "m6",
+    "M6",
+    "m7",
+    "M7",
+    "P8",
+]
+
+tools = [
+    {
+        "name": "play_interval_all_pitches",
+        "description": (
+            "Starts an interval ear-training drill. Plays two-note intervals "
+            "through the speakers and quizzes the student on identifying them. "
+            "Call this when the student wants to practice ear training, or when "
+            "you think it would help based on the lesson."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "chosen_interval_str": {
+                    "type": "string",
+                    "description": (
+                        "Starting interval, e.g. 'M3', 'P5'. Default to 'M3' if"
+                        " unsure."
+                    ),
+                },
+                "starting_octave": {
+                    "type": "integer",
+                    "description": "Octave to start the drill in (default 4).",
+                },
+            },
+            "required": [],
+        },
+    }
+]
+
+
+def play_tone(frequency, duration_seconds=0.8, sample_rate=8000):
+    """Plays a raw mathematical frequency directly through Linux aplay."""
+    num_samples = int(duration_seconds * sample_rate)
+    audio_bytes = bytearray()
+
+    for i in range(num_samples):
+        t = i / sample_rate
+        # The math behind the sounds
+        amplitude = math.sin(2 * math.pi * frequency * t)
+        # Turning the math into a number from 0 to 255
+        sample = int((amplitude + 1) * 127.5)
+        # puts the math into a file
+        audio_bytes.append(sample)
+
+    with os.popen("aplay -q -r 8000 -f U8", "w") as audio_pipe:
+        audio_pipe.buffer.write(audio_bytes)
+
+
+def play_interval_all_pitches(chosen_interval_str="M3", starting_octave=4):
+    """Loops through all 12 pitches of an octave and plays the music21 interval."""
+    print("""
+Interval Guide:
+Perfect Consonance: P1, P4, P5, P8
+Imperfect Consonance: m3, M3, m6, M6
+Soft Dissonance: M2, m7, A4, d5
+Sharp Dissonance: m2, M7
+""")
+
+    base_midi_c = random.randint(36, 72)
+    semitone_offset = 0
+    interval_guess = ""
+
+    while interval_guess.lower().strip() not in [
+        "exit",
+        "exi",
+        "eit",
+        "egsit",
+        "ecsit",
+        "quit",
+        "leave",
+    ]:
+        semitone_offset += 1
+        one_to_11 = random.randint(1, 11)
+
+        current_midi_number = base_midi_c + one_to_11
+
+        note1 = note.Note()
+        note1.pitch.midi = current_midi_number
+
+        chosen_interval_str = random.choice(interval_list)
+        note2 = interval.Interval(chosen_interval_str).transposeNote(note1)
+
+        freq1 = note1.pitch.frequency
+        freq2 = note2.pitch.frequency
+
+        interval_order = random.randint(1, 2)
+
+        if interval_order == 1:
+            print("Acending")
+            print(f"Interval {semitone_offset + 1}: Note 1 -> Note2")
+            play_tone(freq1)
+            play_tone(freq2)
+        else:
+            print("Decending")
+            print(f"Interval {semitone_offset + 1}: Note 2 -> Note 1")
+            play_tone(freq2)
+            play_tone(freq1)
+
+        print(
+            "Guess the interval! >>Type: 'again' to repeat \nType 'exit' to"
+            " leave"
+        )
+        interval_guess = input("Enter guess>>\n")
+
+        while interval_guess.lower().strip() == "again":
+            if interval_order == 1:
+                play_tone(freq1)
+                play_tone(freq2)
+                interval_guess = input("Enter guess>>\n")
+            else:
+                play_tone(freq2)
+                play_tone(freq1)
+                interval_guess = input("Enter guess>>\n")
+
+        if interval_guess.lower().strip() in [
+            "exit",
+            "exi",
+            "eit",
+            "egsit",
+            "ecsit",
+            "quit",
+            "leave",
+        ]:
+            break
+
+        if interval_guess == chosen_interval_str:
+            print("correct! moving on to The next interval >> \n\n")
+        else:
+            print(
+                f"Wrong\nInterval: {chosen_interval_str}  -->>>> "
+                f" {note1.nameWithOctave} -> {note2.nameWithOctave}\n--------"
+            )
+
+        os.system("sleep 0.3")
+
 
 def run_chat():
-    user_input = ""
-    def user_account():
-        user_found = False
-        while not user_found:
-            user_profile = input("sign in / sign up \n>> ")
-            if user_profile.lower() == 'sign in':
-                num_tries = 0
-                
-                while True:
-                    username = input("Enter your username: \n>> ").strip().lower()
-                    if username.strip().lower() in ["back", "sign up"]:
-                        print("Sign up")
-                        user_profile = "sign up"
-                        break
-                        
-                    for user in data:
-                        
-                        username_dict = user.get("username", {})
-                        
-                        if username in username_dict:
-                            user_input = username_dict[username].get("goal")
-                            user_found = True
-                            break
-                            
-                    
-                    if not user_found:
-                        print("User not found: TRY AGAIN")
-                        num_tries += 1
-                        if num_tries > 3:
-                            print("Too many attempts")
-                            user_input = input("Guest mode\n----------\nWhat do You want to learn today? \n>> ")
-                            break  
-                    else:
-                        break           
-                    
-    
+    print("You: (type exit to quit) \nTYPE /HELP FOR A LIST OF COMMANDS")
 
-            elif user_profile.lower() == "sign up":           
-                new_profile = input("Do you want to create a new profile? (yes/no) \n>> ").strip()
-                if new_profile.lower().strip() in ["yes", "yeah", "ye"]:
-                    #NEW USERNAME
-                    username = input("Enter a new username: \n>> ").strip()
-                    
-                    #INSTRUMENT
-                    instrument = input("What instrument do you play? (Guitar / Piano) >>").strip().lower()
-                    while instrument != "guitar" and instrument != "piano":
-                        instrument = input("Enter a valid instrument: (Guitar / Piano) >>").strip().lower()
-
-                    #GOAL
-                    goal = input("What is your goal for this lesson? \n>> ").strip()
-                    
-
-
-                    level = input("What playing level are you at? (beginner / intermediate / pro) >>").strip().lower()
-
-                    while level.lower().strip() not in["beginner", "intermediate", "pro"]:
-                        level = input("Enter a valid level: (beginner / intermediate / pro) >>").strip().lower()   
-
-                    data.append({
-                        "username": {
-                            username: {
-                                "instrument": instrument,
-                                "goal": goal,
-                                "level": level
-                        }
-                    }
-                })
-                    with open("musical.json", "w") as file:
-                        json.dump(data, file, indent=4)
-                    user_input = goal
-                    break
-                else:
-                    print("Guest mode activated. Starting with default lesson.")
-                    user_input = input("What do You want to learn today? \n>> ")
-                    break
-            
-            else:
-                print("Please enter an avilable option\n>> ")
-    user_account()
-    print('You: (type exit to quit) \nTYPE /HELP FOR A LIST OF COMMANDS')
     system_message = """
 You are Rick, a professional music teacher with over 30 years of teaching experience. Your primary goal is to help students become skilled and confident musicians through clear, structured, and accurate instruction. You teach piano as your primary instrument and guitar as a secondary instrument. You specialize in instrument technique, rhythm, practice methods, and helping students improve their playing.
 
 Always teach as a real instructor, not as a general chatbot. Be friendly, patient, encouraging, and professional while maintaining high teaching standards. Never guess or invent information. If you are uncertain about something, say so rather than providing incorrect information.
 
-Adapt every response to the student's current ability, experience, and goals. Explain concepts step by step, using simple language for beginners and more advanced explanations for experienced students.
+Adapt every response to the student's current ability, experience, and goals. Explain concepts step by step, using simple language for beginners and more advanced explanations for experienced students. If the user wants to not put in information about himself and his playing level, just keep the conversation going, and stop asking him for it.
+
+When the user wants to practice ear training or identify musical intervals, call the `play_interval_all_pitches` tool.
 
 Whenever appropriate, organize lessons using a structure similar to:
 
@@ -111,102 +187,86 @@ Whenever appropriate, organize lessons using a structure similar to:
 6. Practice Tips
 7. Next Steps
 
-When teaching instruments, focus on proper technique, including:
-- Finger positions and finger numbers
-- Hand posture
-- Wrist and arm movement
-- Body posture
-- Timing and rhythm
-- Dynamics and expression
-- Coordination between hands
-- Efficient practice habits
-
-Explain not only what to do, but also why it is important.
-
-Generate useful drills, warm-ups, exercises, and practice routines that match the student's level and goals. Include specific instructions such as duration, repetitions, tempo (BPM), and progression when helpful.
-
-Give constructive feedback that is specific, actionable, and encouraging. If a student struggles with a skill, explain it in a different way and provide exercises to improve.
-
-Keep responses organized using headings and bullet points when appropriate. Avoid unnecessary filler or overly long responses unless the student requests detailed explanations.
-
-If the user enters "/summary", provide a well-organized summary of the conversation, including:
-- Skills learned
-- Exercises completed
-- Areas needing improvement
-- Practice recommendations
-- Next steps
+Keep responses organized using headings and bullet points when appropriate.
 """
-    
+
     history = []
 
-    
-    #user_goal = input("What is your goal for this lesson? if you don't have a goal, type 'none' \n>> ")
-    #history.append({'role': 'user', 'content': user_goal})
     while True:
+        user_input = input("you>> ")
+        while user_input.strip() == "":
+            print("Please enter a valid answer")
+            user_input = input("you>> ")
 
-        #user_input = input(
-    #f"[Turn {sum(1 for m in history if m['role'] == 'user')}]: you>> "
-#)
-
-    
-
-        if user_input.lower() == 'exit' or user_input.lower() == '/quit':
-        
+        if user_input.lower() in ["exit", "/quit"]:
             break
-        
 
-        if user_input.lower() == '/help':
-            print("/help - Show available options")
-            print("/lesson - Generate a lesson")
-            print("/drill - Generate a drill - technique, patterns, ")
-            print("/exercise - generate an exercise - finger strength, endurance, speed, etc.")
-            print("/summary - Get a summary of the conversation")
-            print("/progress - Check your progress")
-            print("/quit - Exit the chat")
-            user_input = input("Choose option\n-------------\n>> ")
-            continue
-            
+        history.append({"role": "user", "content": user_input})
 
-        elif user_input.lower() == '/lesson':
-            user_input = "Please generate a lesson for me."
-
-        elif user_input.lower() == '/drill':
-            user_input = "Please generate a drill for me that works towards my general goal or a specific I mentioned in this specific lesson"
-
-        elif user_input.lower() == '/exercise':
-            user_input = "Please generate an exercise for me."
-
-        elif user_input.lower() == '/summary':
-            user_input = "Please provide a summary of our conversation so far."
-
-
-        elif user_input.lower() == '/progress':
-            user_input = "Please provide a summary of my progress so far."
-        
-        elif user_input.lower() == 'exit' or user_input.lower() == '/quit':
-
-            break
-        history.append({'role': 'user', 'content': user_input})
-        #print('History:', history)
-        
         response = client.messages.create(
-            model='claude-haiku-4-5-20251001',
+            model="claude-haiku-4-5-20251001",
             max_tokens=300,
             temperature=0.7,
             system=system_message,
-            messages=history
+            messages=history,
+            tools=tools,
+            tool_choice={"type": "auto"},
         )
-        #print(response)   
 
-        reply = response.content[0].text
-        print(f'Rick: {reply}')
+        while response.stop_reason == "tool_use":
+            history.append({"role": "assistant", "content": response.content})
 
-        history.append({'role': 'assistant', 'content': reply})
-        user_input = input(f"[Turn {sum(1 for m in history if m['role'] == 'user')}]: you>> ")
+            tool_results = []
+            for block in response.content:
+                if (
+                    block.type == "tool_use"
+                    and block.name == "play_interval_all_pitches"
+                ):
+                    play_interval_all_pitches(**block.input)
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": (
+                            "Ear training drill finished successfully by user."
+                        ),
+                    })
+
+            history.append({"role": "user", "content": tool_results})
+
+            response = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=300,
+                temperature=0.7,
+                system=system_message,
+                messages=history,
+                tools=tools,
+                tool_choice={"type": "auto"},
+            )
+
+        reply_text = "".join(
+            [
+                block.text
+                for block in response.content
+                if getattr(block, "type", None) == "text"
+            ]
+        )
+
+        print(f"Rick: {reply_text}")
+        history.append({"role": "assistant", "content": response.content})
 
 
 
 
-run_chat()
 
-print("hi")
+
+
+  
+
+
+
+
+
+
+
+
+
